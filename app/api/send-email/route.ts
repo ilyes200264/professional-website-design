@@ -4,7 +4,7 @@ export async function POST(req: NextRequest) {
   const { name, email, message, subject, ...rest } = await req.json()
 
   const apiKey = "re_LdLwvU42_5YgMgTaWreisorEumCwELzax"
-  const to = "info@groupcmr.com"
+  const to = "contact@cmrenovationdesign.com"
 
   const html = `
     <h2>New message from ${name || "(no name)"}</h2>
