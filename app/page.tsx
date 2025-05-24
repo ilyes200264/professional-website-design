@@ -37,9 +37,9 @@ export default function Home() {
               }}
             >
               <source
-                src="https://ztp4ufxabgjaft6x.public.blob.vercel-storage.com/7578540-uhd_3840_2160_30fps-Me7AhW2WdkPoYPl8J1YpaLVEpIJlMs.mp4"
-                type="video/mp4"
-              />
+  src="https://videos.pexels.com/video-files/15887128/15887128-uhd_2560_1440_30fps.mp4"
+  type="video/mp4"
+/>
               Votre navigateur ne prend pas en charge la lecture de vidéos.
             </video>
           ) : (
