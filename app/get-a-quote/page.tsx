@@ -17,19 +17,65 @@ import { motion } from "framer-motion"
 export default function GetAQuotePage() {
   const [formSubmitted, setFormSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    projectType: "kitchen",
+    budget: "10k-25k",
+    startTime: "1-3-months",
+    projectDescription: "",
+    hearAbout: "referral",
+    terms: false,
+  })
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type, checked } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }))
+  }
+
+  const handleRadioChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
-
-    // Simuler un délai d'envoi
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          name: formData.firstName + " " + formData.lastName,
+          subject: "Quote Request Submission"
+        })
+      })
+      if (!res.ok) throw new Error("Erreur lors de l'envoi du message.")
       setFormSubmitted(true)
-
-      // Réinitialiser le formulaire
-      e.currentTarget.reset()
-    }, 1500)
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        address: "",
+        projectType: "kitchen",
+        budget: "10k-25k",
+        startTime: "1-3-months",
+        projectDescription: "",
+        hearAbout: "referral",
+        terms: false,
+      })
+    } catch (err) {
+      alert("Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -111,23 +157,23 @@ export default function GetAQuotePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label htmlFor="firstName">First Name*</Label>
-                        <Input id="firstName" placeholder="Enter your first name" required />
+                        <Input id="firstName" name="firstName" placeholder="Enter your first name" required value={formData.firstName} onChange={handleInputChange} />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="lastName">Last Name*</Label>
-                        <Input id="lastName" placeholder="Enter your last name" required />
+                        <Input id="lastName" name="lastName" placeholder="Enter your last name" required value={formData.lastName} onChange={handleInputChange} />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="email">Email Address*</Label>
-                        <Input id="email" type="email" placeholder="Enter your email" required />
+                        <Input id="email" name="email" type="email" placeholder="Enter your email" required value={formData.email} onChange={handleInputChange} />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number*</Label>
-                        <Input id="phone" type="tel" placeholder="Enter your phone number" required />
+                        <Input id="phone" name="phone" type="tel" placeholder="Enter your phone number" required value={formData.phone} onChange={handleInputChange} />
                       </div>
                       <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="address">Address</Label>
-                        <Input id="address" placeholder="Enter your address" />
+                        <Input id="address" name="address" placeholder="Enter your address" value={formData.address} onChange={handleInputChange} />
                       </div>
                     </div>
                   </motion.div>
@@ -143,114 +189,74 @@ export default function GetAQuotePage() {
                     <div className="space-y-6">
                       <div className="space-y-2">
                         <Label>What type of project are you planning?*</Label>
-                        <RadioGroup defaultValue="kitchen" className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <RadioGroup value={formData.projectType} onValueChange={v => handleRadioChange("projectType", v)} className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="kitchen" id="kitchen" />
-                            <Label htmlFor="kitchen" className="cursor-pointer">
-                              Kitchen Remodeling
-                            </Label>
+                            <Label htmlFor="kitchen" className="cursor-pointer">Kitchen Remodeling</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="bathroom" id="bathroom" />
-                            <Label htmlFor="bathroom" className="cursor-pointer">
-                              Bathroom Renovation
-                            </Label>
+                            <Label htmlFor="bathroom" className="cursor-pointer">Bathroom Renovation</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="countertops" id="countertops" />
-                            <Label htmlFor="countertops" className="cursor-pointer">
-                              Countertops
-                            </Label>
+                            <Label htmlFor="countertops" className="cursor-pointer">Countertops</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="flooring" id="flooring" />
-                            <Label htmlFor="flooring" className="cursor-pointer">
-                              Flooring Solutions
-                            </Label>
+                            <Label htmlFor="flooring" className="cursor-pointer">Flooring Solutions</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="interior" id="interior" />
-                            <Label htmlFor="interior" className="cursor-pointer">
-                              Interior Design
-                            </Label>
+                            <Label htmlFor="interior" className="cursor-pointer">Interior Design</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="other" id="other" />
-                            <Label htmlFor="other" className="cursor-pointer">
-                              Other
-                            </Label>
+                            <Label htmlFor="other" className="cursor-pointer">Other</Label>
                           </div>
                         </RadioGroup>
                       </div>
 
                       <div className="space-y-2">
                         <Label>What is your estimated budget?*</Label>
-                        <RadioGroup defaultValue="10k-25k" className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <RadioGroup value={formData.budget} onValueChange={v => handleRadioChange("budget", v)} className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="under-10k" id="under-10k" />
-                            <Label htmlFor="under-10k" className="cursor-pointer">
-                              Under $10,000
-                            </Label>
+                            <Label htmlFor="under-10k" className="cursor-pointer">Under $10,000</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="10k-25k" id="10k-25k" />
-                            <Label htmlFor="10k-25k" className="cursor-pointer">
-                              $10,000 - $25,000
-                            </Label>
+                            <Label htmlFor="10k-25k" className="cursor-pointer">$10,000 - $25,000</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="25k-50k" id="25k-50k" />
-                            <Label htmlFor="25k-50k" className="cursor-pointer">
-                              $25,000 - $50,000
-                            </Label>
+                            <Label htmlFor="25k-50k" className="cursor-pointer">$25,000 - $50,000</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="50k-100k" id="50k-100k" />
-                            <Label htmlFor="50k-100k" className="cursor-pointer">
-                              $50,000 - $100,000
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="over-100k" id="over-100k" />
-                            <Label htmlFor="over-100k" className="cursor-pointer">
-                              Over $100,000
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="not-sure" id="not-sure" />
-                            <Label htmlFor="not-sure" className="cursor-pointer">
-                              Not Sure Yet
-                            </Label>
+                            <RadioGroupItem value="50k-plus" id="50k-plus" />
+                            <Label htmlFor="50k-plus" className="cursor-pointer">$50,000+</Label>
                           </div>
                         </RadioGroup>
                       </div>
 
                       <div className="space-y-2">
                         <Label>When would you like to start your project?*</Label>
-                        <RadioGroup defaultValue="1-3-months" className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <RadioGroup value={formData.startTime} onValueChange={v => handleRadioChange("startTime", v)} className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="immediately" id="immediately" />
-                            <Label htmlFor="immediately" className="cursor-pointer">
-                              Immediately
-                            </Label>
+                            <Label htmlFor="immediately" className="cursor-pointer">Immediately</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="1-3-months" id="1-3-months" />
-                            <Label htmlFor="1-3-months" className="cursor-pointer">
-                              1-3 Months
-                            </Label>
+                            <Label htmlFor="1-3-months" className="cursor-pointer">1-3 Months</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="3-6-months" id="3-6-months" />
-                            <Label htmlFor="3-6-months" className="cursor-pointer">
-                              3-6 Months
-                            </Label>
+                            <Label htmlFor="3-6-months" className="cursor-pointer">3-6 Months</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="6-plus-months" id="6-plus-months" />
-                            <Label htmlFor="6-plus-months" className="cursor-pointer">
-                              6+ Months
-                            </Label>
+                            <Label htmlFor="6-plus-months" className="cursor-pointer">6+ Months</Label>
                           </div>
                         </RadioGroup>
                       </div>
@@ -259,44 +265,39 @@ export default function GetAQuotePage() {
                         <Label htmlFor="projectDescription">Project Description*</Label>
                         <Textarea
                           id="projectDescription"
+                          name="projectDescription"
                           placeholder="Please describe your project in detail, including any specific requirements or ideas you have."
                           rows={6}
                           required
+                          value={formData.projectDescription}
+                          onChange={handleInputChange}
                         />
                       </div>
 
                       <div className="space-y-2">
                         <Label>How did you hear about us?</Label>
-                        <RadioGroup defaultValue="referral" className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <RadioGroup value={formData.hearAbout} onValueChange={v => handleRadioChange("hearAbout", v)} className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="referral" id="referral" />
-                            <Label htmlFor="referral" className="cursor-pointer">
-                              Referral
-                            </Label>
+                            <Label htmlFor="referral" className="cursor-pointer">Referral</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="google" id="google" />
-                            <Label htmlFor="google" className="cursor-pointer">
-                              Google Search
-                            </Label>
+                            <Label htmlFor="google" className="cursor-pointer">Google Search</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="social" id="social" />
-                            <Label htmlFor="social" className="cursor-pointer">
-                              Social Media
-                            </Label>
+                            <Label htmlFor="social" className="cursor-pointer">Social Media</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="other-source" id="other-source" />
-                            <Label htmlFor="other-source" className="cursor-pointer">
-                              Other
-                            </Label>
+                            <Label htmlFor="other-source" className="cursor-pointer">Other</Label>
                           </div>
                         </RadioGroup>
                       </div>
 
-                      <div className="flex items-start space-x-2 pt-4">
-                        <Checkbox id="terms" className="mt-1" required />
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="terms" name="terms" className="mt-1" required checked={formData.terms} onCheckedChange={checked => setFormData(prev => ({ ...prev, terms: !!checked }))} />
                         <Label htmlFor="terms" className="text-sm">
                           I agree to receive communications from Group C.M.R. I understand my information will be used
                           in accordance with the privacy policy.
