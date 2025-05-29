@@ -3,11 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-export const metadata = {
-  title: "Rénovation de Cuisine Montréal | Soumission Gratuite en 24h",
-  description: "Rénovation de cuisine à Montréal et banlieues : armoires sur mesure, comptoirs, rénovation complète. 15 ans d'expérience. Soumission gratuite en 24h.",
-};
-
 export default function LandingCuisine() {
   const [videoError, setVideoError] = useState(false);
 
