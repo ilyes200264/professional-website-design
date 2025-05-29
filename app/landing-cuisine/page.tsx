@@ -5,6 +5,75 @@ import { useState } from "react";
 
 export default function LandingCuisine() {
   const [videoError, setVideoError] = useState(false);
+  const [formData, setFormData] = useState({
+    prenom: "",
+    nom: "",
+    codepostal: "",
+    telephone: "",
+    email: "",
+    projet: [],
+    budget: "",
+    delai: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox") {
+      setFormData((prev) => {
+        const projets = new Set(prev.projet);
+        if (checked) projets.add(value);
+        else projets.delete(value);
+        return { ...prev, projet: Array.from(projets) };
+      });
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.prenom + " " + formData.nom,
+          email: formData.email,
+          phone: formData.telephone,
+          codepostal: formData.codepostal,
+          projet: formData.projet.join(", "),
+          budget: formData.budget,
+          delai: formData.delai,
+          message: formData.message,
+          subject: "Demande de devis via landing page",
+        }),
+      });
+      if (!res.ok) throw new Error("Erreur lors de l'envoi du message.");
+      setIsSubmitted(true);
+      setFormData({
+        prenom: "",
+        nom: "",
+        codepostal: "",
+        telephone: "",
+        email: "",
+        projet: [],
+        budget: "",
+        delai: "",
+        message: "",
+      });
+      setTimeout(() => setIsSubmitted(false), 6000);
+    } catch (err) {
+      setError("Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <main className="bg-background text-foreground">
@@ -40,7 +109,7 @@ export default function LandingCuisine() {
         {/* Overlay sombre */}
         <div className="absolute inset-0 bg-black bg-opacity-60 z-10" />
         {/* Contenu principal */}
-        <div className="container relative z-20 mx-auto px-4 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="container relative z-20 mx-auto px-4 py-12 flex flex-col md:flex-row items-center justify-between gap-8 mt-16">
           {/* Texte accrocheur à gauche */}
           <div className="md:w-1/2 text-white max-w-xl">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight drop-shadow-lg">
@@ -51,7 +120,7 @@ export default function LandingCuisine() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <a href="#devis" className="bg-destructive text-white px-6 py-3 rounded font-semibold hover:bg-destructive/90 transition text-center">Obtenez votre soumission gratuite</a>
-              <a href="tel:5141234567" className="bg-white border border-destructive text-destructive px-6 py-3 rounded font-semibold hover:bg-gray-100 transition text-center">Appelez maintenant</a>
+              <a href="tel:514-583-3465" className="bg-white border border-destructive text-destructive px-6 py-3 rounded font-semibold hover:bg-gray-100 transition text-center">Appelez maintenant</a>
             </div>
             <ul className="text-base md:text-lg space-y-1 mt-4">
               <li>✔️ 15 ans d'expérience</li>
@@ -63,30 +132,41 @@ export default function LandingCuisine() {
           {/* Formulaire à droite */}
           <div className="md:w-1/2 max-w-md w-full bg-white bg-opacity-90 rounded-lg shadow-lg p-8 backdrop-blur-md">
             <h2 className="text-xl font-bold mb-4 text-destructive text-center">Pour obtenir un plan et devis</h2>
-            <form className="space-y-4" method="POST" action="#devis">
-              <div className="flex gap-2">
-                <input type="text" name="prenom" placeholder="Prénom" required className="w-1/2 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" />
-                <input type="text" name="nom" placeholder="Nom" required className="w-1/2 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" />
-              </div>
-              <div className="flex gap-2">
-                <input type="text" name="codepostal" placeholder="Code Postal" required className="w-1/2 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" />
-                <input type="tel" name="telephone" placeholder="Téléphone" required className="w-1/2 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" />
-              </div>
-              <input type="email" name="email" placeholder="Courriel" required className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" />
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">Votre projet :</label>
-                <div className="flex flex-wrap gap-2">
-                  <label className="flex items-center gap-1 text-sm"><input type="checkbox" name="projet" value="renovation" /> Rénovation</label>
-                  <label className="flex items-center gap-1 text-sm"><input type="checkbox" name="projet" value="construction" /> Construction neuve</label>
-                  <label className="flex items-center gap-1 text-sm"><input type="checkbox" name="projet" value="cuisine" /> Cuisine</label>
-                  <label className="flex items-center gap-1 text-sm"><input type="checkbox" name="projet" value="sallebain" /> Salle de bain</label>
+            {isSubmitted ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 </div>
+                <h3 className="text-xl font-semibold text-green-800 mb-2">Merci, votre demande a bien été envoyée !</h3>
+                <p className="text-green-700">Nous vous répondrons dans les plus brefs délais.</p>
               </div>
-              <input type="text" name="budget" placeholder="Budget" className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" />
-              <input type="text" name="delai" placeholder="Date de livraison souhaitée" className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" />
-              <textarea name="message" placeholder="Message" rows={2} className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive"></textarea>
-              <button type="submit" className="w-full bg-destructive text-white py-3 rounded font-semibold hover:bg-destructive/90 transition">Envoyer message</button>
-            </form>
+            ) : (
+              <form className="space-y-4" method="POST" onSubmit={handleSubmit}>
+                <div className="flex gap-2">
+                  <input type="text" name="prenom" placeholder="Prénom" required className="w-1/2 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" value={formData.prenom} onChange={handleChange} />
+                  <input type="text" name="nom" placeholder="Nom" required className="w-1/2 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" value={formData.nom} onChange={handleChange} />
+                </div>
+                <div className="flex gap-2">
+                  <input type="text" name="codepostal" placeholder="Code Postal" required className="w-1/2 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" value={formData.codepostal} onChange={handleChange} />
+                  <input type="tel" name="telephone" placeholder="Téléphone" required className="w-1/2 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" value={formData.telephone} onChange={handleChange} />
+                </div>
+                <input type="email" name="email" placeholder="Courriel" required className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" value={formData.email} onChange={handleChange} />
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">Votre projet :</label>
+                  <div className="flex flex-wrap gap-2">
+                    <label className="flex items-center gap-1 text-sm"><input type="checkbox" name="projet" value="Rénovation" checked={formData.projet.includes("Rénovation")} onChange={handleChange} /> Rénovation</label>
+                    <label className="flex items-center gap-1 text-sm"><input type="checkbox" name="projet" value="Construction neuve" checked={formData.projet.includes("Construction neuve")} onChange={handleChange} /> Construction neuve</label>
+                    <label className="flex items-center gap-1 text-sm"><input type="checkbox" name="projet" value="Cuisine" checked={formData.projet.includes("Cuisine")} onChange={handleChange} /> Cuisine</label>
+                    <label className="flex items-center gap-1 text-sm"><input type="checkbox" name="projet" value="Salle de bain" checked={formData.projet.includes("Salle de bain")} onChange={handleChange} /> Salle de bain</label>
+                  </div>
+                </div>
+                <input type="text" name="budget" placeholder="Budget" className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" value={formData.budget} onChange={handleChange} />
+                <input type="text" name="delai" placeholder="Date de livraison souhaitée" className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" value={formData.delai} onChange={handleChange} />
+                <textarea name="message" placeholder="Message" rows={2} className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-destructive" value={formData.message} onChange={handleChange}></textarea>
+                {error && <div className="text-red-600 text-sm">{error}</div>}
+                <button type="submit" className="w-full bg-destructive text-white py-3 rounded font-semibold hover:bg-destructive/90 transition" disabled={isSubmitting}>{isSubmitting ? "Envoi en cours..." : "Envoyer message"}</button>
+              </form>
+            )}
           </div>
         </div>
       </section>
@@ -154,7 +234,7 @@ export default function LandingCuisine() {
             <div className="text-lg text-primary">Années d'expérience</div>
           </div>
           <div>
-            <div className="text-4xl font-bold text-destructive mb-1">6000+</div>
+            <div className="text-4xl font-bold text-destructive mb-1">600</div>
             <div className="text-lg text-primary">Projets réalisés</div>
           </div>
           <div>
@@ -170,18 +250,19 @@ export default function LandingCuisine() {
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-primary">Témoignages</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <blockquote className="bg-white bg-opacity-80 p-6 rounded shadow text-center">
-              <p className="italic mb-3">« Travail impeccable, délais respectés et équipe très professionnelle. Je recommande à 100% ! »</p>
-              <footer className="text-sm font-semibold">– Marie, Laval</footer>
+              <p className="italic mb-3">Nous avons fait appel au groupe CMR pour la fabrication de notre cuisine et nous ne pouvons que les recommander chaleureusement ! Dès le début, Raphaël et son équipe ont fait preuve d'un grand professionnalisme. Ils ont su être à l'écoute de nos besoins, nous conseiller avec expertise et respecter les délais. La finition de notre cuisine est tout simplement parfaite, et nous sommes ravis du résultat final. Le rapport qualité/prix est exceptionnel. Nous avons vraiment apprécié leur sérieux et leur souci du détail. Nous sommes plus que satisfaits, et nous les remercions encore pour leur excellent travail !!!</p>
+              <footer className="text-sm font-semibold">– Samuel Lesveque</footer>
             </blockquote>
             <blockquote className="bg-white bg-opacity-80 p-6 rounded shadow text-center">
-              <p className="italic mb-3">« Notre cuisine est méconnaissable ! Devis rapide et prix très compétitif. »</p>
-              <footer className="text-sm font-semibold">– Jean, Brossard</footer>
+              <p className="italic mb-3">Une bonne compagnie avec qui j'ai faite affaire et aucunement déçu ,il sont très minutieux , respectueux et ponctuel et je suis très satisfaite des travaux effectuer et le tous a été bien fait et rapidement</p>
+              <footer className="text-sm font-semibold">– Katy Ayotte</footer>
             </blockquote>
             <blockquote className="bg-white bg-opacity-80 p-6 rounded shadow text-center">
-              <p className="italic mb-3">« Service clé en main, aucune surprise. Merci à toute l'équipe ! »</p>
-              <footer className="text-sm font-semibold">– Sophie, Terrebonne</footer>
+              <p className="italic mb-3">Super service rapide et professionnels très rapport qualite prix</p>
+              <footer className="text-sm font-semibold">– Maude Sweeney</footer>
             </blockquote>
           </div>
+          <p className="text-center text-xs text-gray-500 mt-4">Avis tirés de notre page Google Business.</p>
         </div>
       </section>
 
@@ -190,7 +271,7 @@ export default function LandingCuisine() {
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
           <div>
             <h3 className="font-bold text-lg mb-1">Rénovation Cuisine Montréal</h3>
-            <p>514-123-4567<br />
+            <p>514-583-3465<br />
               <a href="mailto:info@cuisinerenov.ca" className="underline">info@cuisinerenov.ca</a></p>
             <p className="mt-2">Laval, Brossard, Terrebonne et environs</p>
           </div>
