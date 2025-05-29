@@ -283,6 +283,9 @@ export default function LandingCuisine() {
             <p className="mt-2 text-sm">Lun-Ven : 8h-18h<br />Sam : 9h-14h</p>
           </div>
         </div>
+        <p className="text-center text-xs mt-4">
+          <a href="/privacy-policy" className="underline hover:text-destructive">Politique de confidentialité</a>
+        </p>
         <p className="text-center text-xs mt-6 text-gray-400">&copy; 2024 Rénovation Cuisine Montréal. Tous droits réservés.</p>
       </footer>
     </main>
