@@ -3,6 +3,29 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
+// Fonction de tracking Google Ads Conversion
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+function gtag_report_conversion(url?: string) {
+  const callback = function () {
+    if (typeof url !== 'undefined') {
+      window.location = url;
+    }
+  };
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'conversion', {
+      send_to: 'AW-17127429162/uNRKCti9d7w2tKzQ-_YJ',
+      value: 1.0,
+      currency: 'CAD',
+      event_callback: callback,
+    });
+  }
+  return false;
+}
+
 export default function LandingCuisine() {
   const [videoError, setVideoError] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,7 +43,7 @@ export default function LandingCuisine() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target;
     if (type === "checkbox") {
       setFormData((prev) => {
@@ -34,7 +57,7 @@ export default function LandingCuisine() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
@@ -67,6 +90,8 @@ export default function LandingCuisine() {
         delai: "",
         message: "",
       });
+      // Appel du tracking Google Ads Conversion après succès
+      gtag_report_conversion();
       setTimeout(() => setIsSubmitted(false), 6000);
     } catch (err) {
       setError("Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.");
