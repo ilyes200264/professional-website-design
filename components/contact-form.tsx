@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +11,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { motion } from "framer-motion"
 
 export default function ContactForm() {
+  const pathname = usePathname()
+  const isFrench = pathname.startsWith("/fr")
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -20,6 +24,26 @@ export default function ContactForm() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+
+  // Translation labels
+  const labels = {
+    firstName: isFrench ? "Prénom" : "First name",
+    lastName: isFrench ? "Nom" : "Last name", 
+    email: isFrench ? "Courriel" : "Email",
+    phone: isFrench ? "Téléphone" : "Phone",
+    address: isFrench ? "Adresse" : "Address",
+    message: isFrench ? "Message" : "Message",
+    submit: isFrench ? "Envoyer" : "Submit",
+    submitting: isFrench ? "Envoi en cours..." : "Submitting...",
+    successTitle: isFrench ? "Message envoyé avec succès !" : "Message sent successfully!",
+    successMessage: isFrench 
+      ? "Merci pour votre message. Nous vous répondrons dans les plus brefs délais."
+      : "Thank you for your message. We'll get back to you as soon as possible.",
+    required: isFrench ? "obligatoire" : "required",
+    errorMessage: isFrench 
+      ? "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer."
+      : "An error occurred while sending the message. Please try again."
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -39,10 +63,10 @@ export default function ContactForm() {
           phone: formData.phone,
           address: formData.address,
           message: formData.message,
-          subject: "Contact Form Submission"
+          subject: isFrench ? "Soumission de formulaire de contact" : "Contact Form Submission"
         })
       })
-      if (!res.ok) throw new Error("Erreur lors de l'envoi du message.")
+      if (!res.ok) throw new Error(labels.errorMessage)
       setFormData({
         firstName: "",
         lastName: "",
@@ -54,7 +78,7 @@ export default function ContactForm() {
       setIsSubmitted(true)
       setTimeout(() => setIsSubmitted(false), 5000)
     } catch (err) {
-      alert("Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.")
+      alert(labels.errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -64,41 +88,55 @@ export default function ContactForm() {
     <>
       {isSubmitted ? (
         <motion.div
-          className="bg-green-50 border border-green-200 rounded-lg p-6 text-center"
+          className="text-center p-8 bg-green-50 rounded-lg border border-green-200"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.5 }}
         >
           <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
-            initial={{ rotate: 0 }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 0.5 }}
           >
             <svg
               className="w-8 h-8 text-green-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </motion.div>
-          <h3 className="text-xl font-semibold text-green-800 mb-2">Thank you for your message!</h3>
-          <p className="text-green-700">We'll get back to you as soon as possible.</p>
+          <h3 className="text-xl font-semibold text-green-800 mb-2">
+            {labels.successTitle}
+          </h3>
+          <p className="text-green-700">
+            {labels.successMessage}
+          </p>
         </motion.div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <motion.div
               className="space-y-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Label htmlFor="firstName">First name</Label>
-              <Input id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} required />
+              <Label htmlFor="firstName">{labels.firstName}</Label>
+              <Input 
+                id="firstName" 
+                name="firstName" 
+                value={formData.firstName} 
+                onChange={handleChange} 
+                required 
+              />
             </motion.div>
             <motion.div
               className="space-y-2"
@@ -106,8 +144,14 @@ export default function ContactForm() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <Label htmlFor="lastName">Last name</Label>
-              <Input id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} required />
+              <Label htmlFor="lastName">{labels.lastName}</Label>
+              <Input 
+                id="lastName" 
+                name="lastName" 
+                value={formData.lastName} 
+                onChange={handleChange} 
+                required 
+              />
             </motion.div>
           </div>
           <motion.div
@@ -116,8 +160,15 @@ export default function ContactForm() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
           >
-            <Label htmlFor="email">Email*</Label>
-            <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
+            <Label htmlFor="email">{labels.email}*</Label>
+            <Input 
+              id="email" 
+              name="email" 
+              type="email" 
+              value={formData.email} 
+              onChange={handleChange} 
+              required 
+            />
           </motion.div>
           <motion.div
             className="space-y-2"
@@ -125,8 +176,14 @@ export default function ContactForm() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.3 }}
           >
-            <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} />
+            <Label htmlFor="phone">{labels.phone}</Label>
+            <Input 
+              id="phone" 
+              name="phone" 
+              type="tel" 
+              value={formData.phone} 
+              onChange={handleChange} 
+            />
           </motion.div>
           <motion.div
             className="space-y-2"
@@ -134,8 +191,13 @@ export default function ContactForm() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.4 }}
           >
-            <Label htmlFor="address">Address</Label>
-            <Input id="address" name="address" value={formData.address} onChange={handleChange} />
+            <Label htmlFor="address">{labels.address}</Label>
+            <Input 
+              id="address" 
+              name="address" 
+              value={formData.address} 
+              onChange={handleChange} 
+            />
           </motion.div>
           <motion.div
             className="space-y-2"
@@ -143,8 +205,14 @@ export default function ContactForm() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.5 }}
           >
-            <Label htmlFor="message">Message</Label>
-            <Textarea id="message" name="message" value={formData.message} onChange={handleChange} rows={4} />
+            <Label htmlFor="message">{labels.message}</Label>
+            <Textarea 
+              id="message" 
+              name="message" 
+              value={formData.message} 
+              onChange={handleChange} 
+              rows={4} 
+            />
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -176,10 +244,10 @@ export default function ContactForm() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Submitting...
+                  {labels.submitting}
                 </span>
               ) : (
-                "Submit"
+                labels.submit
               )}
             </Button>
           </motion.div>

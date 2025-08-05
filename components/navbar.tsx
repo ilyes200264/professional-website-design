@@ -194,33 +194,67 @@ export default function EnhancedNavbar() {
     flooring: isFrench ? "Solutions de plancher" : "Flooring Solutions",
   }
 
-  // Services menu items dynamiques
+  // FIXED: Services menu items now use language-specific paths
   const servicesItems = [
-    { name: navLabels.kitchen, path: "/services/kitchen-remodeling" },
-    { name: navLabels.countertops, path: "/services/countertops-cabinets" },
-    { name: navLabels.bathroom, path: "/services/bathroom-renovation" },
-    { name: navLabels.flooring, path: "/services/flooring-solutions" }
+    { 
+      name: navLabels.kitchen, 
+      path: isFrench ? "/fr/services/kitchen-remodeling" : "/services/kitchen-remodeling" 
+    },
+    { 
+      name: navLabels.countertops, 
+      path: isFrench ? "/fr/services/countertops-cabinets" : "/services/countertops-cabinets" 
+    },
+    { 
+      name: navLabels.bathroom, 
+      path: isFrench ? "/fr/services/bathroom-renovation" : "/services/bathroom-renovation" 
+    },
+    { 
+      name: navLabels.flooring, 
+      path: isFrench ? "/fr/services/flooring-solutions" : "/services/flooring-solutions" 
+    }
   ]
 
   // Calculate header height based on scroll state
   const headerHeight = isScrolled ? "h-16" : "h-20";
 
-  // Liste des pages traduites
+  // FIXED: Enhanced list of translated pages including service pages
   const frPages = ["about", "services", "gallery", "careers", "contact"]
+  const servicePages = ["kitchen-remodeling", "countertops-cabinets", "bathroom-renovation", "flooring-solutions"]
 
-  // Générer le lien FR
+  // FIXED: Enhanced French link generation
   let frLink = "/fr"
-  if (pathname === "/") frLink = "/fr"
-  else {
+  if (pathname === "/") {
+    frLink = "/fr"
+  } else {
     const match = pathname.match(/^\/(\w+)/)
-    if (match && frPages.includes(match[1])) frLink = `/fr/${match[1]}`
+    if (match && frPages.includes(match[1])) {
+      frLink = `/fr/${match[1]}`
+    } else {
+      // Handle service pages
+      const serviceMatch = pathname.match(/^\/services\/(.+)/)
+      if (serviceMatch && servicePages.includes(serviceMatch[1])) {
+        frLink = `/fr/services/${serviceMatch[1]}`
+      }
+    }
   }
 
-  // Générer le lien EN
+  // FIXED: Enhanced English link generation
   let enLink = "/"
   if (pathname.startsWith("/fr")) {
-    const match = pathname.match(/^\/fr\/(\w+)/)
-    if (match && frPages.includes(match[1])) enLink = `/${match[1]}`
+    if (pathname === "/fr") {
+      enLink = "/"
+    } else {
+      const match = pathname.match(/^\/fr\/(\w+)/)
+      if (match && frPages.includes(match[1])) {
+        enLink = `/${match[1]}`
+      } else {
+        // Handle French service pages
+        const serviceMatch = pathname.match(/^\/fr\/services\/(.+)/)
+        if (serviceMatch && servicePages.includes(serviceMatch[1])) {
+          enLink = `/services/${serviceMatch[1]}`
+        }
+      }
+    }
   }
 
   return (
@@ -245,173 +279,149 @@ export default function EnhancedNavbar() {
               zIndex: 10 // Ensure logo is above other elements
             }}
           >
-            <Link href="/" className="flex items-center">
+            <Link href={isFrench ? "/fr" : "/"} className="flex items-center">
               <div className="relative">
                 <AnimatePresence mode="wait">
                   {isScrolled ? (
                     <motion.div
-                      key="black-logo"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      key="scrolled"
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="h-12 w-auto"
                     >
                       <Image
-                        src="/logo-black.png" 
-                        alt="Group C.M.R Logo"
-                        width={240}
-                        height={95}
-                        className="h-14 md:h-16 lg:h-20 w-auto transform-gpu"
-                        priority
-                        style={{ 
-                          objectFit: "contain",
-                          marginBottom: "-0.5rem",
-                          marginTop: "-0.5rem"
-                        }}
+                        src="/images/cmr-logo-black.png"
+                        alt="Group C.M.R"
+                        width={120}
+                        height={48}
+                        className="h-12 w-auto object-contain"
                       />
                     </motion.div>
                   ) : (
                     <motion.div
-                      key="white-logo"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      key="normal"
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="h-16 w-auto"
                     >
                       <Image
-                        src="/logo.png" 
-                        alt="Group C.M.R Logo"
-                        width={240}
-                        height={95}
-                        className="h-14 md:h-16 lg:h-20 w-auto transform-gpu"
-                        priority
-                        style={{ 
-                          objectFit: "contain",
-                          marginBottom: "-0.75rem",
-                          marginTop: "-0.75rem"
-                        }}
+                        src="/images/cmr-logo-white.png"
+                        alt="Group C.M.R"
+                        width={140}
+                        height={64}
+                        className="h-16 w-auto object-contain"
                       />
                     </motion.div>
                   )}
                 </AnimatePresence>
-                {/* Optional: Add a decorative line below the logo that appears when scrolled */}
-                {isScrolled && (
-                  <motion.div 
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: 0.5 }}
-                  />
-                )}
               </div>
             </Link>
           </motion.div>
 
-          {/* Desktop Navigation - Adjusted to accommodate bigger logo */}
-          <nav className="hidden md:flex items-center space-x-4 lg:space-x-8" ref={dropdownRef}>
-            {[
-              { name: navLabels.home, path: isFrench ? "/fr" : "/" },
-              { name: navLabels.about, path: isFrench ? "/fr/about" : "/about" },
-              { name: navLabels.services, dropdown: true, items: servicesItems },
-              { name: navLabels.gallery, path: isFrench ? "/fr/gallery" : "/gallery" },
-              { name: navLabels.careers, path: isFrench ? "/fr/careers" : "/careers" }
-            ].map((item, i) =>
-              item.dropdown ? (
-                <motion.div 
-                  key={item.name} 
-                  variants={navItemVariants}
-                  className="relative"
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <motion.div variants={navItemVariants}>
+              <Link
+                href={isFrench ? "/fr" : "/"}
+                className={`font-medium transition-colors ${
+                  isScrolled ? "text-black hover:text-gray-700" : "text-white hover:text-gray-200"
+                }`}
+              >
+                {navLabels.home}
+              </Link>
+            </motion.div>
+            <motion.div variants={navItemVariants}>
+              <Link
+                href={isFrench ? "/fr/about" : "/about"}
+                className={`font-medium transition-colors ${
+                  isScrolled ? "text-black hover:text-gray-700" : "text-white hover:text-gray-200"
+                }`}
+              >
+                {navLabels.about}
+              </Link>
+            </motion.div>
+            
+            {/* Services Dropdown */}
+            <motion.div 
+              className="relative" 
+              variants={navItemVariants}
+              ref={dropdownRef}
+            >
+              <motion.button
+                className={`font-medium transition-colors flex items-center ${
+                  isScrolled ? "text-black hover:text-gray-700" : "text-white hover:text-gray-200"
+                }`}
+                onClick={() => toggleDropdown("SERVICES")}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {navLabels.services}
+                <motion.div
+                  animate={{ rotate: activeDropdown === "SERVICES" ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <motion.button
-                    className={`font-medium ${
-                      isScrolled 
-                        ? "text-black hover:text-gray-700" 
-                        : "text-white hover:text-gray-200"
-                    } transition-colors flex items-center space-x-1 py-2`}
-                    onClick={() => toggleDropdown(item.name)}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ y: 0 }}
+                  <ChevronDown className="ml-1 w-4 h-4" />
+                </motion.div>
+              </motion.button>
+              
+              <AnimatePresence>
+                {activeDropdown === "SERVICES" && (
+                  <motion.div
+                    className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50"
+                    variants={dropdownVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
                   >
-                    <span>{item.name}</span>
-                    <motion.div
-                      animate={{ rotate: activeDropdown === item.name ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ChevronDown className="w-4 h-4" />
-                    </motion.div>
-                  </motion.button>
-
-                  <AnimatePresence>
-                    {activeDropdown === item.name && (
-                      <motion.div
-                        className={`absolute left-0 top-full mt-1 py-2 rounded-md shadow-2xl overflow-hidden ${
-                          isScrolled 
-                            ? "bg-white text-black" 
-                            : "bg-black bg-opacity-90 text-white"
-                        }`}
-                        variants={dropdownVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        style={{ minWidth: "220px" }}
-                      >
-                        {item.items.map((subItem, j) => (
+                    {servicesItems.map((item, index) => (
+                      <motion.div key={index} variants={dropdownItemVariants}>
+                        <Link
+                          href={item.path}
+                          className="block px-6 py-4 text-gray-700 hover:bg-gray-50 hover:text-black transition-colors font-medium border-b border-gray-50 last:border-0"
+                          onClick={() => setActiveDropdown(null)}
+                        >
                           <motion.div
-                            key={subItem.name}
-                            variants={dropdownItemVariants}
                             whileHover="hover"
-                            className="relative"
+                            variants={dropdownItemVariants}
+                            className="flex items-center justify-between"
                           >
-                            <Link 
-                              href={subItem.path}
-                              className={`block px-5 py-2.5 transition-colors whitespace-nowrap ${
-                                isScrolled 
-                                  ? "hover:bg-gray-100 hover:text-black" 
-                                  : "hover:bg-gray-800 hover:text-white"
-                              }`}
-                              onClick={() => setActiveDropdown(null)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <span>{subItem.name}</span>
-                                <ChevronRight className="w-4 h-4 opacity-60" />
-                              </div>
-                            </Link>
+                            <span>{item.name}</span>
+                            <ChevronRight className="w-4 h-4 opacity-50" />
                           </motion.div>
-                        ))}
+                        </Link>
                       </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              ) : (
-                <motion.div 
-                  key={item.name} 
-                  variants={navItemVariants}
-                >
-                  <Link
-                    href={item.path ?? "/"}
-                    className={`font-medium ${
-                      isScrolled 
-                        ? "text-black hover:text-gray-700" 
-                        : "text-white hover:text-gray-200"
-                    } transition-colors py-2 px-1 relative overflow-hidden group`}
-                  >
-                    <span className="relative z-10">{item.name}</span>
-                    <motion.span 
-                      className={`absolute bottom-0 left-0 w-full h-0.5 ${
-                        isScrolled ? "bg-black" : "bg-white"
-                      } opacity-0 group-hover:opacity-100 transition-all duration-300`}
-                      initial={{ scaleX: 0 }}
-                      whileHover={{ 
-                        scaleX: 1,
-                        transition: { duration: 0.3 }
-                      }}
-                    />
-                  </Link>
-                </motion.div>
-              )
-            )}
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
-            {/* Call-to-action Button */}
+            <motion.div variants={navItemVariants}>
+              <Link
+                href={isFrench ? "/fr/gallery" : "/gallery"}
+                className={`font-medium transition-colors ${
+                  isScrolled ? "text-black hover:text-gray-700" : "text-white hover:text-gray-200"
+                }`}
+              >
+                {navLabels.gallery}
+              </Link>
+            </motion.div>
+            <motion.div variants={navItemVariants}>
+              <Link
+                href={isFrench ? "/fr/careers" : "/careers"}
+                className={`font-medium transition-colors ${
+                  isScrolled ? "text-black hover:text-gray-700" : "text-white hover:text-gray-200"
+                }`}
+              >
+                {navLabels.careers}
+              </Link>
+            </motion.div>
+
+            {/* Quote Button */}
             <motion.div variants={navItemVariants}>
               <Link href={isFrench ? "/fr/get-a-quote" : "/get-a-quote"}>
                 <Button 
@@ -539,12 +549,12 @@ export default function EnhancedNavbar() {
                   <span>{navLabels.services}</span>
                   <motion.div
                     animate={{ rotate: activeDropdown === "MOBILE_SERVICES" ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.2 }}
                   >
                     <ChevronDown className="w-4 h-4 opacity-50" />
                   </motion.div>
                 </motion.button>
-
+                
                 <AnimatePresence>
                   {activeDropdown === "MOBILE_SERVICES" && (
                     <motion.div
@@ -552,60 +562,56 @@ export default function EnhancedNavbar() {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="pl-4 overflow-hidden"
+                      className="overflow-hidden"
                     >
-                      {servicesItems.map((subItem) => (
-                        <motion.div
-                          key={subItem.name}
-                          variants={dropdownItemVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          whileHover="hover"
-                        >
+                      <div className="pl-4 pb-2 space-y-1">
+                        {servicesItems.map((item, index) => (
                           <Link
-                            href={subItem.path}
-                            className="block py-3 pl-2 border-l-2 border-gray-200 text-gray-700 hover:text-black hover:border-black transition-colors"
-                            onClick={() => {
-                              setIsMenuOpen(false);
-                              setActiveDropdown(null);
-                            }}
+                            key={index}
+                            href={item.path}
+                            className="block font-medium text-gray-600 hover:text-black transition-colors py-2"
+                            onClick={() => setIsMenuOpen(false)}
                           >
-                            {subItem.name}
+                            {item.name}
                           </Link>
-                        </motion.div>
-                      ))}
+                        ))}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </motion.div>
 
-              <motion.div
-                variants={menuItemVariants}
-                className="pt-4"
-              >
-                <Link href={isFrench ? "/fr/get-a-quote" : "/get-a-quote"}>
-                  <Button className="w-full bg-black text-white hover:bg-gray-800 font-medium py-6">
+              {/* Language Switcher for Mobile */}
+              <motion.div variants={menuItemVariants} className="py-4 flex items-center justify-center space-x-4">
+                <Link
+                  href={frLink}
+                  className="font-medium text-black px-4 py-2 border border-gray-300 rounded transition-colors hover:bg-gray-100"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  FR
+                </Link>
+                <Link
+                  href={enLink}
+                  className="font-medium text-black px-4 py-2 border border-gray-300 rounded transition-colors hover:bg-gray-100"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  EN
+                </Link>
+              </motion.div>
+
+              {/* Quote Button for Mobile */}
+              <motion.div variants={menuItemVariants} className="pt-4">
+                <Link href={isFrench ? "/fr/get-a-quote" : "/get-a-quote"} onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full bg-black text-white hover:bg-gray-800">
                     {navLabels.quote}
                   </Button>
                 </Link>
-              </motion.div>
-              
-              {/* Contact information in mobile menu */}
-              <motion.div
-                variants={menuItemVariants}
-                className="mt-6 pt-6 border-t border-gray-100"
-              >
-                <p className="text-sm text-gray-500 mb-2">Contact us</p>
-                <p className="text-black font-medium">438-923-8941</p>
-                <p className="text-black font-medium mt-2">info@groupcmr.com</p>
               </motion.div>
             </div>
           </motion.nav>
         )}
       </AnimatePresence>
-      
-      {/* Decorative elements */}
+
       <Decoration />
     </motion.header>
   )
